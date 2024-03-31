@@ -32,6 +32,7 @@ export default function Home() {
   const [showErrorPrompt, setShowErrorPrompt] = useState<boolean>(false);
   const [currentQuestion, setCurrentQuestion] = useState<question | null>(initialQuestion);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
 
   const incrementQuestion = (increment: number) => {
     const newIndex = currentQuestionIndex + increment;
@@ -107,8 +108,8 @@ export default function Home() {
           {currentQuestion?.choices.map((choice, index) => {
             return (
               <section>
-                <input type="radio" name="answer" value={choice} />
-                <label htmlFor="answer">{choice}</label>
+                <input type="radio" name="answer" id={choice} value={choice} />
+                <label htmlFor={choice}>{choice}</label>
               </section>
             );
           })}
