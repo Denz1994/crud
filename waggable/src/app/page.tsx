@@ -31,19 +31,33 @@ export default function Home() {
   const [showScore, setShowScore] = useState<boolean>(false);
   const [showErrorPrompt, setShowErrorPrompt] = useState<boolean>(false);
   const [currentQuestion, setCurrentQuestion] = useState<question | null>(initialQuestion);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(1);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  const incrementQuestion = (increment: number) => {
+    const newIndex = currentQuestionIndex + increment;
+
+    // Check for exceeding boundaries
+    if (newIndex < 0) {
+      // Handle going below the first question (optional)
+      console.warn("Reached the first question");
+    } else if (newIndex >= questions.length) {
+      // Handle going beyond the last question (optional)
+      console.warn("Reached the last question");
+    } else {
+      // Update state within valid range
+      setCurrentQuestionIndex(newIndex);
+      setCurrentQuestion(questions[newIndex]);
+    }
+  };
 
   const updateQuestion = () => {
-    setCurrentQuestionIndex((prev: number) => {
-      return prev + 1;
-    });
-    setCurrentQuestion(questions[currentQuestionIndex]);
+    incrementQuestion(1);
   };
 
   const updateQuestionDisplay = () => {
     const hasReachedFinalQuestion = currentQuestionIndex >= questions.length;
-    setShowScore(currentQuestionIndex >= questions.length);
-    setShowErrorPrompt(0 <= currentQuestionIndex && currentQuestionIndex >= questions.length);
+    setShowScore(hasReachedFinalQuestion);
+    setShowErrorPrompt(0 <= currentQuestionIndex && hasReachedFinalQuestion);
   };
 
   const onSubmitHandler = (event) => {
@@ -55,12 +69,30 @@ export default function Home() {
   const onResetHandler = (event) => {
     event.preventDefault();
     setCurrentQuestion(initialQuestion);
-    setCurrentQuestionIndex(1);
+    setCurrentQuestionIndex(0);
     setShowScore(false);
     setShowErrorPrompt(false);
   };
 
-  let questionHeader = !showErrorPrompt ? <h4>Question {currentQuestionIndex}</h4> : <h4>No Question Found</h4>;
+  let questionHeader = !showErrorPrompt ? <h4>Question {currentQuestionIndex + 1}</h4> : <h4>No Question Found</h4>;
+  const previousButton = (
+    <button
+      onClick={() => {
+        incrementQuestion(-1);
+      }}
+    >
+      &larr;
+    </button>
+  );
+  const nextButton = (
+    <button
+      onClick={() => {
+        incrementQuestion(1);
+      }}
+    >
+      &rarr;
+    </button>
+  );
 
   const restartButton = (
     <button type="reset" onClick={onResetHandler}>
@@ -102,7 +134,11 @@ export default function Home() {
     <>
       <section>
         <h1>Quiz</h1>
-        {questionHeader}
+        <span>
+          {questionHeader}
+          {previousButton}
+          {nextButton}
+        </span>
       </section>
       {!showScore ? questionForm : restartButton}
     </>
