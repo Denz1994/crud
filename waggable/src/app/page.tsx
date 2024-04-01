@@ -2,37 +2,46 @@
 import { useState } from "react";
 
 interface question {
+  id: number;
   prompt: string;
   correctAnswer: string;
+  selectedChoice: null | string;
   choices: string[];
 }
 
 export default function Home() {
   const question1: question = {
+    id: 1,
     prompt: "What color is the sky?",
     correctAnswer: "blue",
+    selectedChoice: null,
     choices: ["blue", "green", "red", "orange"],
   };
 
   const question2: question = {
+    id: 2,
     prompt: "What planet do you live on?",
     correctAnswer: "earth",
+    selectedChoice: null,
     choices: ["saturn", "mecury", "mars", "earth"],
   };
 
   const question3: question = {
+    id: 3,
     prompt: "Which one below is an animal?",
     correctAnswer: "monkey",
+    selectedChoice: null,
     choices: ["apple", "car", "monkey", "book"],
   };
-  const questions: question[] = [question1, question2, question3];
-  const initialQuestion = questions[0];
+  const questionData: question[] = [question1, question2, question3];
+  const initialQuestion = questionData[0];
 
+  const [questions, setQuestions] = useState(questionData);
   const [showScore, setShowScore] = useState<boolean>(false);
   const [showErrorPrompt, setShowErrorPrompt] = useState<boolean>(false);
   const [currentQuestion, setCurrentQuestion] = useState<question | null>(initialQuestion);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
 
   const incrementQuestion = (increment: number) => {
     const newIndex = currentQuestionIndex + increment;
@@ -51,24 +60,38 @@ export default function Home() {
     }
   };
 
-  const updateQuestion = () => {
+  const updateQuestion = (event) => {
+    const selectedAnswer = event.target.answer.value;
+    questions[currentQuestionIndex].selectedChoice = selectedAnswer;
     incrementQuestion(1);
   };
 
   const updateQuestionDisplay = () => {
-    const hasReachedFinalQuestion = currentQuestionIndex >= questions.length;
+    const hasReachedFinalQuestion = currentQuestionIndex === questions.length - 1;
     setShowScore(hasReachedFinalQuestion);
     setShowErrorPrompt(0 <= currentQuestionIndex && hasReachedFinalQuestion);
   };
 
+  const updateScore = () => {
+    let correctAnswerCounter = 0;
+    for (const targetQuestion of questions) {
+      if (targetQuestion.correctAnswer === targetQuestion.selectedChoice) {
+        correctAnswerCounter += 1;
+      }
+    }
+    setScore(Math.round((correctAnswerCounter / questions.length) * 100));
+  };
+
   const onSubmitHandler = (event) => {
     event.preventDefault();
-    updateQuestion();
+    updateQuestion(event);
     updateQuestionDisplay();
+    if (currentQuestionIndex === questions.length - 1) {
+      updateScore();
+    }
   };
 
   const onResetHandler = (event) => {
-    event.preventDefault();
     setCurrentQuestion(initialQuestion);
     setCurrentQuestionIndex(0);
     setShowScore(false);
@@ -97,7 +120,7 @@ export default function Home() {
 
   const restartButton = (
     <button type="reset" onClick={onResetHandler}>
-      Restart
+      Start Over
     </button>
   );
   const questionForm = (
@@ -107,28 +130,42 @@ export default function Home() {
         <fieldset>
           {currentQuestion?.choices.map((choice, index) => {
             return (
-              <section>
-                <input type="radio" name="answer" id={choice} value={choice} />
+              <section key={index}>
+                <input
+                  type="radio"
+                  name="answer"
+                  id={choice}
+                  value={choice}
+                  onChange={() =>
+                    setQuestions((prevQuestions) => {
+                      const updatedQuestions = [...prevQuestions];
+                      updatedQuestions[currentQuestionIndex].selectedChoice = choice;
+                      return updatedQuestions;
+                    })
+                  }
+                />
                 <label htmlFor={choice}>{choice}</label>
               </section>
             );
           })}
         </fieldset>
+
         <button type="submit">Submit</button>
         {restartButton}
       </form>
     </section>
   );
+  const navigationGroup = (
+    <>
+      {previousButton}
+      {nextButton}
+    </>
+  );
 
   /**
    * TODO:
-   * - Record answers
-   * - Implement scoring
-   * - Radio buttons should carry selected value to next question
-   * - Can't click text to select radio button
+   * - Radio buttons shouldn't carry selected value to next question
    * - Decouple sections into components of their own. Pass props.
-   *
-   *
    */
 
   return (
@@ -137,11 +174,11 @@ export default function Home() {
         <h1>Quiz</h1>
         <span>
           {questionHeader}
-          {previousButton}
-          {nextButton}
+          {!showScore && navigationGroup}
         </span>
       </section>
       {!showScore ? questionForm : restartButton}
+      {showScore && <p>Score: {score}%</p>}
     </>
   );
 }
