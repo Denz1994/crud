@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { SyntheticEvent, useState } from "react";
 
 interface question {
   id: number;
@@ -60,8 +60,10 @@ export default function Home() {
     }
   };
 
-  const updateQuestion = (event) => {
-    const selectedAnswer = event.target.answer.value;
+  const updateQuestion = (event: SyntheticEvent) => {
+    const element = event.target as HTMLFormElement;
+    const selectedAnswer = element.answer.value;
+
     questions[currentQuestionIndex].selectedChoice = selectedAnswer;
     incrementQuestion(1);
   };
@@ -82,7 +84,7 @@ export default function Home() {
     setScore(Math.round((correctAnswerCounter / questions.length) * 100));
   };
 
-  const onSubmitHandler = (event) => {
+  const onSubmitHandler = (event: SyntheticEvent) => {
     event.preventDefault();
     updateQuestion(event);
     updateQuestionDisplay();
@@ -91,7 +93,7 @@ export default function Home() {
     }
   };
 
-  const onResetHandler = (event) => {
+  const onResetHandler = (event: SyntheticEvent) => {
     setCurrentQuestion(initialQuestion);
     setCurrentQuestionIndex(0);
     setShowScore(false);
