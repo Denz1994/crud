@@ -1,5 +1,6 @@
 "use client";
-import { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
+import { getQuestionsData } from "./data";
 
 interface question {
   id: number;
@@ -33,8 +34,23 @@ export default function Home() {
     selectedChoice: null,
     choices: ["apple", "car", "monkey", "book"],
   };
-  const questionData: question[] = [question1, question2, question3];
+  const [fetchedQuestionData, setFetchedQuestionData] = useState<question[]>([]);
+
+  // TODO: Correct fetching questions
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getQuestionsData();
+        setFetchedQuestionData(data.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+  const questionData = fetchedQuestionData;
   const initialQuestion = questionData[0];
+  console.log("initial", initialQuestion);
 
   const [questions, setQuestions] = useState(questionData);
   const [showScore, setShowScore] = useState<boolean>(false);
@@ -125,6 +141,7 @@ export default function Home() {
       Start Over
     </button>
   );
+  console.log("currentQ = ", currentQuestion);
   const questionForm = (
     <section>
       <form onReset={(event) => onResetHandler(event)} onSubmit={(event) => onSubmitHandler(event)}>
