@@ -2,62 +2,43 @@
 import { SyntheticEvent, useEffect, useState } from "react";
 import { getQuestionsData } from "./data";
 
-interface question {
+interface Question {
   id: number;
   prompt: string;
   correctAnswer: string;
   selectedChoice: null | string;
   choices: string[];
 }
+interface FetchedQuestionData {
+  data: Question[];
+}
 
 export default function Home() {
-  const question1: question = {
-    id: 1,
-    prompt: "What color is the sky?",
-    correctAnswer: "blue",
-    selectedChoice: null,
-    choices: ["blue", "green", "red", "orange"],
-  };
+  const [fetchedQuestionData, setFetchedQuestionData] = useState<FetchedQuestionData>({ data: [] });
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [showScore, setShowScore] = useState<boolean>(false);
+  const [showErrorPrompt, setShowErrorPrompt] = useState<boolean>(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [score, setScore] = useState<number>(0);
 
-  const question2: question = {
-    id: 2,
-    prompt: "What planet do you live on?",
-    correctAnswer: "earth",
-    selectedChoice: null,
-    choices: ["saturn", "mecury", "mars", "earth"],
-  };
+  const initialQuestion = fetchedQuestionData.data[0];
 
-  const question3: question = {
-    id: 3,
-    prompt: "Which one below is an animal?",
-    correctAnswer: "monkey",
-    selectedChoice: null,
-    choices: ["apple", "car", "monkey", "book"],
-  };
-  const [fetchedQuestionData, setFetchedQuestionData] = useState<question[]>([]);
-
-  // TODO: Correct fetching questions
   useEffect(() => {
+    const url = "http://localhost:3000/api/questions";
     const fetchData = async () => {
       try {
-        const data = await getQuestionsData();
-        setFetchedQuestionData(data.data);
+        const res = await fetch(url);
+        const json = await res.json();
+        setFetchedQuestionData(json);
+        setQuestions(json.data);
+        setCurrentQuestion(json.data[0]);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error(error);
       }
     };
     fetchData();
   }, []);
-  const questionData = fetchedQuestionData;
-  const initialQuestion = questionData[0];
-  console.log("initial", initialQuestion);
-
-  const [questions, setQuestions] = useState(questionData);
-  const [showScore, setShowScore] = useState<boolean>(false);
-  const [showErrorPrompt, setShowErrorPrompt] = useState<boolean>(false);
-  const [currentQuestion, setCurrentQuestion] = useState<question | null>(initialQuestion);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [score, setScore] = useState<number>(0);
 
   const incrementQuestion = (increment: number) => {
     const newIndex = currentQuestionIndex + increment;
@@ -142,6 +123,7 @@ export default function Home() {
     </button>
   );
   console.log("currentQ = ", currentQuestion);
+
   const questionForm = (
     <section>
       <form onReset={(event) => onResetHandler(event)} onSubmit={(event) => onSubmitHandler(event)}>
