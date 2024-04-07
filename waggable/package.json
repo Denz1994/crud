@@ -6,12 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "safetest": "cross-env OPT_URL=http://localhost:3000 react-scripts --inspect test --runInBand --testMatch '**/*.safetest.{j,t}s{,x}' --setupFilesAfterEnv ./setup-safetest.tsx",
+    "safetest:ci": "rm -f artifacts.json && OPT_URL=${DEPLOYED_URL} OPT_CI=1 OPT_DOCKER=1 npm run safetest -- --watchAll=false --ci=1 --json --outputFile=results.json",
+    "safetest:regenerate-screenshots": "cross-env OPT_DOCKER=1 npm run safetest -- --watchAll=false --update-snapshot"
   },
   "dependencies": {
+    "cross-env": "^7.0.3",
     "next": "14.1.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-scripts": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -22,6 +27,7 @@
     "eslint-config-next": "14.1.4",
     "postcss": "^8",
     "prettier": "3.2.5",
+    "safetest": "^0.1.13",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }
